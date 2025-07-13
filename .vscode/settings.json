@@ -1,0 +1,7 @@
+{
+  "phpcs.enable": true,
+  "phpcs.standard": "WordPress",
+  "phpcs.executablePath": "/Users/yourname/.composer/vendor/bin/phpcs", // or .config/composer
+  "editor.formatOnSave": true,
+  "php.debug.executablePath": "/opt/homebrew/bin/php"
+}
