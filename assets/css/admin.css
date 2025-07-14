@@ -1,0 +1,59 @@
+#xarma-sheet-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1em;
+}
+
+#xarma-sheet-table th,
+#xarma-sheet-table td {
+  padding: 8px 10px;
+  border: 1px solid #ccc;
+  vertical-align: middle;
+  background-color: #fff;
+}
+
+#xarma-sheet-table th {
+  background-color: #f9f9f9;
+  font-weight: bold;
+}
+
+.handle {
+  cursor: move;
+  color: #999;
+  text-align: center;
+  width: 20px;
+}
+
+.xarma-edit {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.xarma-edit[contenteditable="true"] {
+  background-color: #fffbe7;
+  outline: none;
+}
+
+button.clone-post,
+button.trash-post {
+  margin-right: 5px;
+}
+
+body.xarma-dark {
+  background-color: #1e1e1e;
+  color: #f0f0f0;
+}
+
+body.xarma-dark table,
+body.xarma-dark th,
+body.xarma-dark td {
+  background-color: #2a2a2a;
+  color: #ffffff;
+  border-color: #444;
+}
+
+body.xarma-compact table td,
+body.xarma-compact table th {
+  padding: 4px 6px !important;
+  font-size: 12px;
+}

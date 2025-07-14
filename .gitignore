@@ -1,0 +1,7 @@
+vendor/
+backups/
+*.zip
+composer.lock
+.DS_Store
+node_modules/
+credentials.json

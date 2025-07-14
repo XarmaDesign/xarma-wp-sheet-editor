@@ -1,13 +1,12 @@
 {
-    "name": "visualya-mbp-14/xarma-wp-sheet-editor",
-    "require-dev": {
-        "squizlabs/php_codesniffer": "^3.13",
-        "wp-coding-standards/wpcs": "^3.1",
-        "dealerdirect/phpcodesniffer-composer-installer": "^1.1"
-    },
-    "config": {
-        "allow-plugins": {
-            "dealerdirect/phpcodesniffer-composer-installer": true
-        }
+  "name": "xarma/wp-sheet-editor",
+  "description": "Foglio editor per contenuti WordPress",
+  "require": {
+    "phpoffice/phpspreadsheet": "^1.28"
+  },
+  "autoload": {
+    "psr-4": {
+      "Xarma\\": "includes/"
     }
+  }
 }
