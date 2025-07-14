@@ -3,6 +3,7 @@ jQuery(document).ready(function ($) {
   const $postType = $('#xarma-post-type');
   const $lang = $('#xarma-lang-filter');
   const $filter = $('#xarma-filter-input');
+  const $deleteBtn = $('#delete-selected-btn');
 
   function loadPosts() {
     $.post(xarmaData.ajaxUrl, {
@@ -11,9 +12,8 @@ jQuery(document).ready(function ($) {
       post_type: $postType.val(),
       lang: $lang.val()
     }, function (res) {
-      if (!res || !res.success || !res.data || !Array.isArray(res.data.posts)) {
-        alert('❌ Errore nel caricamento contenuti. Controlla console.');
-        console.log(res);
+      if (!res || !res.success || !Array.isArray(res.data.posts)) {
+        alert('❌ Errore nel caricamento contenuti.');
         return;
       }
 
@@ -42,16 +42,20 @@ jQuery(document).ready(function ($) {
           <td><input type="text" class="xarma-edit" data-field="slug" value="${escapeHtml(post.slug)}"></td>
           <td><input type="text" class="xarma-edit" data-field="excerpt" value="${escapeHtml(post.excerpt || '')}"></td>
           <td><select class="xarma-edit" data-field="author">${authorOptions}</select></td>
-          <td><button class="edit-content" data-id="${post.ID}" data-content="${escapeHtml(post.content)}">✏️</button></td>
+          <td>
+            <button class="edit-content" data-id="${post.ID}" data-content="${escapeHtml(post.content)}">✏️</button>
+            <button class="delete-post" data-id="${post.ID}">🗑️</button>
+          </td>
           <td>${post.lang}</td>
         </tr>`;
       $tableBody.append(row);
     });
 
-    addEvents();
+    bindEvents();
+    updateDeleteButtonVisibility();
   }
 
-  function addEvents() {
+  function bindEvents() {
     $('.xarma-edit').on('change', function () {
       const $row = $(this).closest('tr');
       const id = $row.data('id');
@@ -72,8 +76,7 @@ jQuery(document).ready(function ($) {
           $row.addClass('xarma-saved');
           setTimeout(() => $row.removeClass('xarma-saved'), 1200);
         } else {
-          alert('❌ Errore nel salvataggio!');
-          console.log(res);
+          alert('❌ Errore salvataggio');
         }
       });
     });
@@ -85,7 +88,64 @@ jQuery(document).ready(function ($) {
       $('#xarma-modal-content').val(content);
       $('#xarma-modal').fadeIn(200);
     });
+
+    $tableBody.off('click', '.delete-post');
+    $tableBody.on('click', '.delete-post', function () {
+      const id = $(this).data('id');
+      if (confirm('Eliminare questo contenuto?')) {
+        $.post(xarmaData.ajaxUrl, {
+          action: 'xarma_delete_post',
+          nonce: xarmaData.nonce,
+          post_ids: [id]
+        }, function () {
+          showToast('✅ Post eliminato');
+          loadPosts();
+        });
+      }
+    });
+
+    $tableBody.off('change', '.row-check');
+    $tableBody.on('change', '.row-check', function () {
+      $(this).closest('tr').toggleClass('selected', this.checked);
+      updateDeleteButtonVisibility();
+    });
+
+    $('#check-all').off('change').on('change', function () {
+      const checked = this.checked;
+      $('.row-check').each(function () {
+        this.checked = checked;
+        $(this).closest('tr').toggleClass('selected', checked);
+      });
+      updateDeleteButtonVisibility();
+    });
   }
+
+  function updateDeleteButtonVisibility() {
+    const hasSelected = $('.row-check:checked').length > 0;
+    $deleteBtn.toggleClass('hidden', !hasSelected);
+  }
+
+  $('#delete-selected-btn').on('click', function () {
+    const ids = $('.row-check:checked').map(function () {
+      return $(this).closest('tr').data('id');
+    }).get();
+
+    if (ids.length === 0) {
+      alert('Nessun contenuto selezionato.');
+      return;
+    }
+
+    if (confirm(`Eliminare ${ids.length} elementi selezionati?`)) {
+      $.post(xarmaData.ajaxUrl, {
+        action: 'xarma_delete_post',
+        nonce: xarmaData.nonce,
+        post_ids: ids
+      }, function () {
+        showToast('✅ Contenuti eliminati');
+        loadPosts();
+      });
+    }
+  });
 
   $('#xarma-modal-save').on('click', function () {
     const id = $('#xarma-modal-id').val();
@@ -103,8 +163,7 @@ jQuery(document).ready(function ($) {
         showToast('✅ Contenuto aggiornato');
         loadPosts();
       } else {
-        alert('❌ Errore nel salvataggio contenuto');
-        console.log(res);
+        alert('❌ Errore salvataggio contenuto');
       }
     });
   });
@@ -113,11 +172,17 @@ jQuery(document).ready(function ($) {
     $('#xarma-modal').fadeOut(200);
   });
 
+  // ✅ Filtro migliorato: cerca nei campi rilevanti
   $filter.on('input', function () {
     const search = $(this).val().toLowerCase();
+
     $('#xarma-sheet-table tbody tr').each(function () {
-      const text = $(this).text().toLowerCase();
-      $(this).toggle(text.includes(search));
+      const title = $(this).find('input[data-field="title"]').val()?.toLowerCase() || '';
+      const slug = $(this).find('input[data-field="slug"]').val()?.toLowerCase() || '';
+      const excerpt = $(this).find('input[data-field="excerpt"]').val()?.toLowerCase() || '';
+
+      const match = title.includes(search) || slug.includes(search) || excerpt.includes(search);
+      $(this).toggle(match);
     });
   });
 
