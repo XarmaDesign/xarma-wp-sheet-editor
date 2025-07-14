@@ -5,46 +5,45 @@ jQuery(document).ready(function ($) {
   const $filter = $('#xarma-filter-input');
 
   function loadPosts() {
-    console.log('🔄 Caricamento per tipo:', $postType.val());
-
     $.post(xarmaData.ajaxUrl, {
       action: 'xarma_get_posts',
       nonce: xarmaData.nonce,
       post_type: $postType.val(),
       lang: $lang.val()
     }, function (res) {
-      if (res.success) {
-        renderTable(res.data);
-      } else {
-        console.warn('❌ Errore risposta AJAX:', res);
+      if (!res || !res.success || !res.data || !Array.isArray(res.data.posts)) {
+        alert('❌ Errore nel caricamento contenuti. Controlla console (F12).');
+        console.log(res);
+        return;
       }
+
+      renderTable(res.data.posts, res.data.authors || []);
     });
   }
 
-  function renderTable(data) {
+  function renderTable(posts, authors) {
     $tableBody.empty();
-    data.forEach(post => {
-      const statusOptions = ['publish', 'draft', 'pending', 'private', 'trash']
-        .map(status => `<option value="${status}" ${post.status === status ? 'selected' : ''}>${status.charAt(0).toUpperCase() + status.slice(1)}</option>`)
+    posts.forEach(post => {
+      const statusOptions = ['publish', 'draft', 'pending', 'private']
+        .map(status => `<option value="${status}" ${post.status === status ? 'selected' : ''}>${status}</option>`)
         .join('');
+
+      const authorOptions = authors.map(user =>
+        `<option value="${user.ID}" ${user.ID == post.author ? 'selected' : ''}>${user.display_name}</option>`
+      ).join('');
 
       const row = `
         <tr data-id="${post.ID}">
-          <td class="handle">☰</td>
           <td><input type="checkbox" class="row-check"></td>
-          <td><input type="text" class="xarma-edit" data-field="title" value="${escapeHtml(post.title)}" title="Titolo"></td>
-          <td data-col="status">
-            <select class="xarma-edit" data-field="status" title="Stato">
-              ${statusOptions}
-            </select>
-          </td>
-          <td data-col="date"><input type="date" class="xarma-edit" data-field="date" value="${post.date}" title="Data"></td>
-          <td data-col="color"><input type="color" class="xarma-edit" data-field="color" value="${post.meta_color || '#ffffff'}" title="Colore"></td>
+          <td><input type="text" class="xarma-edit" data-field="title" value="${escapeHtml(post.title)}"></td>
+          <td><select class="xarma-edit" data-field="status">${statusOptions}</select></td>
+          <td><input type="date" class="xarma-edit" data-field="date" value="${post.date}"></td>
+          <td><input type="color" class="xarma-edit" data-field="color" value="${post.meta_color || '#ffffff'}"></td>
+          <td><input type="text" class="xarma-edit" data-field="slug" value="${escapeHtml(post.slug)}"></td>
+          <td><input type="text" class="xarma-edit" data-field="excerpt" value="${escapeHtml(post.excerpt || '')}"></td>
+          <td><select class="xarma-edit" data-field="author">${authorOptions}</select></td>
+          <td><button class="edit-content" data-id="${post.ID}" data-content="${escapeHtml(post.content)}">✏️</button></td>
           <td>${post.lang}</td>
-          <td>
-            <button class="clone-post">📄</button>
-            <button class="trash-post">🗑️</button>
-          </td>
         </tr>`;
       $tableBody.append(row);
     });
@@ -68,9 +67,25 @@ jQuery(document).ready(function ($) {
         value: value
       }, function () {
         $row.removeClass('xarma-updating').addClass('xarma-saved');
-        showToast('✅ Salvataggio riuscito');
         setTimeout(() => $row.removeClass('xarma-saved'), 1000);
       });
+    });
+
+    $('.edit-content').on('click', function () {
+      const postId = $(this).data('id');
+      const currentContent = $(this).data('content') || '';
+      const newContent = prompt("✍️ Modifica contenuto completo del post:", currentContent);
+      if (newContent !== null) {
+        $.post(xarmaData.ajaxUrl, {
+          action: 'xarma_save_post',
+          nonce: xarmaData.nonce,
+          post_id: postId,
+          field: 'content',
+          value: newContent
+        }, function () {
+          showToast('✅ Contenuto aggiornato');
+        });
+      }
     });
   }
 
@@ -95,19 +110,19 @@ jQuery(document).ready(function ($) {
   $postType.on('change', loadPosts);
   $lang.on('change', loadPosts);
 
+  function escapeHtml(text) {
+    return text ? text.toString()
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;") : '';
+  }
+
   function showToast(msg) {
     const $toast = $('#xarma-toast');
     if ($toast.length === 0) {
       $('body').append('<div id="xarma-toast"></div>');
     }
     $('#xarma-toast').text(msg).fadeIn(200).delay(1000).fadeOut(400);
-  }
-
-  function escapeHtml(text) {
-    return text
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;");
   }
 
   loadPosts();
