@@ -4,8 +4,9 @@ jQuery(document).ready(function ($) {
   const $lang = $('#xarma-lang-filter');
   const $filter = $('#xarma-filter-input');
 
-  // Load posts
   function loadPosts() {
+    console.log('🔄 Caricamento per tipo:', $postType.val());
+
     $.post(xarmaData.ajaxUrl, {
       action: 'xarma_get_posts',
       nonce: xarmaData.nonce,
@@ -14,20 +15,29 @@ jQuery(document).ready(function ($) {
     }, function (res) {
       if (res.success) {
         renderTable(res.data);
+      } else {
+        console.warn('❌ Errore risposta AJAX:', res);
       }
     });
   }
 
-  // Render table
   function renderTable(data) {
     $tableBody.empty();
     data.forEach(post => {
+      const statusOptions = ['publish', 'draft', 'pending', 'private', 'trash']
+        .map(status => `<option value="${status}" ${post.status === status ? 'selected' : ''}>${status.charAt(0).toUpperCase() + status.slice(1)}</option>`)
+        .join('');
+
       const row = `
         <tr data-id="${post.ID}">
           <td class="handle">☰</td>
           <td><input type="checkbox" class="row-check"></td>
           <td><input type="text" class="xarma-edit" data-field="title" value="${escapeHtml(post.title)}" title="Titolo"></td>
-          <td data-col="status"><input type="text" class="xarma-edit" data-field="status" value="${post.status}" title="Status"></td>
+          <td data-col="status">
+            <select class="xarma-edit" data-field="status" title="Stato">
+              ${statusOptions}
+            </select>
+          </td>
           <td data-col="date"><input type="date" class="xarma-edit" data-field="date" value="${post.date}" title="Data"></td>
           <td data-col="color"><input type="color" class="xarma-edit" data-field="color" value="${post.meta_color || '#ffffff'}" title="Colore"></td>
           <td>${post.lang}</td>
@@ -42,7 +52,6 @@ jQuery(document).ready(function ($) {
     addEvents();
   }
 
-  // Auto-save
   function addEvents() {
     $('.xarma-edit').on('change', function () {
       const $row = $(this).closest('tr');
@@ -63,17 +72,8 @@ jQuery(document).ready(function ($) {
         setTimeout(() => $row.removeClass('xarma-saved'), 1000);
       });
     });
-
-    // Tooltip automatici
-    $('.xarma-edit').each(function () {
-      if (!$(this).attr('title')) {
-        const label = $(this).data('field') || '';
-        $(this).attr('title', 'Modifica campo: ' + label);
-      }
-    });
   }
 
-  // Filter
   $filter.on('input', function () {
     const search = $(this).val().toLowerCase();
     $('#xarma-sheet-table tbody tr').each(function () {
@@ -82,7 +82,6 @@ jQuery(document).ready(function ($) {
     });
   });
 
-  // New post
   $('#new-post-btn').on('click', function () {
     $.post(xarmaData.ajaxUrl, {
       action: 'xarma_new_post',
@@ -93,7 +92,9 @@ jQuery(document).ready(function ($) {
     });
   });
 
-  // Toast
+  $postType.on('change', loadPosts);
+  $lang.on('change', loadPosts);
+
   function showToast(msg) {
     const $toast = $('#xarma-toast');
     if ($toast.length === 0) {
@@ -102,13 +103,12 @@ jQuery(document).ready(function ($) {
     $('#xarma-toast').text(msg).fadeIn(200).delay(1000).fadeOut(400);
   }
 
-  // Escape HTML
   function escapeHtml(text) {
-    return text.replace(/&/g, "&amp;")
-               .replace(/</g, "&lt;")
-               .replace(/>/g, "&gt;");
+    return text
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;");
   }
 
-  // Init
   loadPosts();
 });
