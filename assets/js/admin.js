@@ -12,7 +12,7 @@ jQuery(document).ready(function ($) {
       lang: $lang.val()
     }, function (res) {
       if (!res || !res.success || !res.data || !Array.isArray(res.data.posts)) {
-        alert('❌ Errore nel caricamento contenuti. Controlla console (F12).');
+        alert('❌ Errore nel caricamento contenuti. Controlla console.');
         console.log(res);
         return;
       }
@@ -57,7 +57,8 @@ jQuery(document).ready(function ($) {
       const id = $row.data('id');
       const field = $(this).data('field');
       const value = $(this).val();
-      $row.addClass('xarma-updating');
+
+      $row.removeClass('xarma-saved').addClass('xarma-updating');
 
       $.post(xarmaData.ajaxUrl, {
         action: 'xarma_save_post',
@@ -65,29 +66,52 @@ jQuery(document).ready(function ($) {
         post_id: id,
         field: field,
         value: value
-      }, function () {
-        $row.removeClass('xarma-updating').addClass('xarma-saved');
-        setTimeout(() => $row.removeClass('xarma-saved'), 1000);
+      }, function (res) {
+        $row.removeClass('xarma-updating');
+        if (res && res.success) {
+          $row.addClass('xarma-saved');
+          setTimeout(() => $row.removeClass('xarma-saved'), 1200);
+        } else {
+          alert('❌ Errore nel salvataggio!');
+          console.log(res);
+        }
       });
     });
 
     $('.edit-content').on('click', function () {
-      const postId = $(this).data('id');
-      const currentContent = $(this).data('content') || '';
-      const newContent = prompt("✍️ Modifica contenuto completo del post:", currentContent);
-      if (newContent !== null) {
-        $.post(xarmaData.ajaxUrl, {
-          action: 'xarma_save_post',
-          nonce: xarmaData.nonce,
-          post_id: postId,
-          field: 'content',
-          value: newContent
-        }, function () {
-          showToast('✅ Contenuto aggiornato');
-        });
-      }
+      const id = $(this).data('id');
+      const content = $(this).data('content') || '';
+      $('#xarma-modal-id').val(id);
+      $('#xarma-modal-content').val(content);
+      $('#xarma-modal').fadeIn(200);
     });
   }
+
+  $('#xarma-modal-save').on('click', function () {
+    const id = $('#xarma-modal-id').val();
+    const content = $('#xarma-modal-content').val();
+
+    $.post(xarmaData.ajaxUrl, {
+      action: 'xarma_save_post',
+      nonce: xarmaData.nonce,
+      post_id: id,
+      field: 'content',
+      value: content
+    }, function (res) {
+      $('#xarma-modal').fadeOut(200);
+      if (res && res.success) {
+        showToast('✅ Contenuto aggiornato');
+        loadPosts();
+      } else {
+        alert('❌ Errore nel salvataggio contenuto');
+        console.log(res);
+      }
+    });
+  });
+
+  $('#xarma-modal-cancel').on('click', function () {
+    $('#xarma-modal').fadeOut(200);
+  });
 
   $filter.on('input', function () {
     const search = $(this).val().toLowerCase();
@@ -111,10 +135,7 @@ jQuery(document).ready(function ($) {
   $lang.on('change', loadPosts);
 
   function escapeHtml(text) {
-    return text ? text.toString()
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;") : '';
+    return text ? text.toString().replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;") : '';
   }
 
   function showToast(msg) {
