@@ -23,9 +23,9 @@ class Xarma_Admin_Page {
 		if ( $hook !== 'toplevel_page_xarma-sheet' ) {
 			return;
 		}
-		wp_enqueue_style( 'xarma-admin-css', XARMA_URL . 'assets/css/admin.css', [], '1.0' );
+		wp_enqueue_style( 'xarma-admin-css', XARMA_URL . 'assets/css/admin.css', [], '1.2.0' );
 		wp_enqueue_script( 'jquery-ui-sortable' );
-		wp_enqueue_script( 'xarma-admin-js', XARMA_URL . 'assets/js/admin.js', [ 'jquery' ], '1.0', true );
+		wp_enqueue_script( 'xarma-admin-js', XARMA_URL . 'assets/js/admin.js', [ 'jquery' ], '1.2.0', true );
 		wp_localize_script( 'xarma-admin-js', 'xarmaData', [
 			'ajaxUrl' => admin_url( 'admin-ajax.php' ),
 			'nonce'   => wp_create_nonce( 'xarma_nonce' ),
@@ -36,7 +36,8 @@ class Xarma_Admin_Page {
 		$post_types = get_post_types( [ 'public' => true ], 'objects' );
 		echo '<div class="wrap"><h1>Xarma WP Sheet Editor</h1>';
 
-		echo '<label for="xarma-post-type">Tipo di contenuto:</label> ';
+		echo '<div class="xarma-toolbar" style="margin-bottom:15px;">';
+		echo '<label>Tipo:</label> ';
 		echo '<select id="xarma-post-type">';
 		foreach ( $post_types as $type ) {
 			printf(
@@ -49,29 +50,25 @@ class Xarma_Admin_Page {
 
 		if ( function_exists( 'pll_languages_list' ) ) {
 			$langs = pll_languages_list();
+			echo '<label>Lingua:</label> ';
 			echo '<select id="xarma-lang-filter">';
-			echo '<option value="">Tutte le lingue</option>';
+			echo '<option value="">Tutte</option>';
 			foreach ( $langs as $code ) {
 				echo '<option value="' . esc_attr( $code ) . '">' . esc_html( strtoupper( $code ) ) . '</option>';
 			}
-			echo '</select>';
+			echo '</select> ';
 		}
 
-		echo ' <button id="new-post-btn" class="button button-primary">+ Nuovo post</button>';
+		echo '<input type="text" id="xarma-filter-input" placeholder="🔍 Cerca..." /> ';
+		echo '<button id="new-post-btn" class="button button-primary">+ Nuovo post</button>';
+		echo '</div>';
 
-		echo '<div style="margin:10px 0;">
-			<label><input type="checkbox" class="xarma-col-toggle" data-col="status" checked> Status</label>
-			<label><input type="checkbox" class="xarma-col-toggle" data-col="date" checked> Data</label>
-			<label><input type="checkbox" class="xarma-col-toggle" data-col="color" checked> Color</label>
-			<label><input type="checkbox" id="xarma-toggle-dark"> Dark mode</label>
-			<label><input type="checkbox" id="xarma-toggle-compact"> Vista compatta</label>
-		</div>';
-
+		echo '<div id="xarma-sheet-table-wrapper">';
 		echo '<table id="xarma-sheet-table">
 			<thead>
 				<tr>
 					<th class="handle"></th>
-					<th>Seleziona</th>
+					<th>✓</th>
 					<th data-col="title">Titolo</th>
 					<th data-col="status">Status</th>
 					<th data-col="date">Data</th>
@@ -82,6 +79,7 @@ class Xarma_Admin_Page {
 			</thead>
 			<tbody></tbody>
 		</table>';
+		echo '</div>';
 
 		echo '<form method="post" action="' . admin_url( 'admin-ajax.php' ) . '" target="_blank" style="margin-top:20px;">
 			<input type="hidden" name="action" value="xarma_export_excel">
