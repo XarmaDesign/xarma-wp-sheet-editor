@@ -1,4 +1,4 @@
-/* Toolbar layout */
+/* Toolbar */
 .xarma-toolbar {
   margin: 20px 0;
   display: flex;
@@ -7,19 +7,146 @@
   align-items: center;
 }
 
-#xarma-filter-input {
+#xarma-filter-input,
+#xarma-post-type,
+#xarma-lang-filter {
   flex: 1;
   min-width: 180px;
-  padding: 5px 8px;
+  height: 36px;
+  padding: 6px 10px;
+  font-size: 14px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  background: #fafafa;
+  color: #333;
 }
 
-#new-post-btn {
+/* Bottoni */
+#new-post-btn,
+#delete-selected-btn,
+#xarma-modal-save,
+#xarma-modal-cancel {
+  height: 36px;
+  font-size: 14px;
+  padding: 0 14px;
+  border-radius: 6px;
+  border: 1px solid #bbb;
+  background-color: #f0f0f0;
+  color: #333;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+#new-post-btn:hover,
+#delete-selected-btn:hover,
+#xarma-modal-save:hover,
+#xarma-modal-cancel:hover {
+  background-color: #e0e0e0;
+  border-color: #999;
+}
+
+.hidden {
+  display: none !important;
+}
+
+/* Tabella */
+#xarma-sheet-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #fff;
+  font-size: 14px;
+  table-layout: fixed;
+}
+
+#xarma-sheet-table th,
+#xarma-sheet-table td {
+  padding: 8px;
+  border-bottom: 1px solid #e2e2e2;
+  vertical-align: middle;
   white-space: nowrap;
 }
 
-/* Saved row effect */
+#xarma-sheet-table thead th {
+  background-color: #f7f7f7;
+  font-weight: 600;
+  color: #333;
+  text-align: left;
+}
+
+/* Colonne specifiche */
+#xarma-sheet-table th:first-child,
+#xarma-sheet-table td:first-child {
+  width: 30px;
+  text-align: center;
+}
+
+#xarma-sheet-table th:nth-child(2),
+#xarma-sheet-table td:nth-child(2) {
+  min-width: 250px;
+}
+
+#xarma-sheet-table th:nth-child(5),
+#xarma-sheet-table td:nth-child(5) {
+  width: 60px;
+}
+
+/* Input & Select */
+#xarma-sheet-table input[type="text"],
+#xarma-sheet-table input[type="date"],
+#xarma-sheet-table select {
+  width: 100%;
+  height: 36px;
+  padding: 6px 10px;
+  font-size: 14px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  background-color: #fafafa;
+  color: #333;
+  box-sizing: border-box;
+}
+
+#xarma-sheet-table input[type="color"] {
+  width: 100%;
+  height: 36px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  background: #fafafa;
+  padding: 2px;
+  box-sizing: border-box;
+}
+
+/* Riga selezionata */
+tr.selected {
+  background-color: #f2f2f2 !important;
+}
+
+/* Pulsanti inline */
+.edit-content,
+.delete-post {
+  height: 32px;
+  padding: 4px 10px;
+  font-size: 14px;
+  border: 1px solid #bbb;
+  border-radius: 6px;
+  background-color: #f9f9f9;
+  color: #444;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.edit-content:hover,
+.delete-post:hover {
+  background-color: #e2e2e2;
+  border-color: #999;
+}
+
+.edit-content {
+  margin-right: 5px;
+}
+
+/* Stati salvataggio */
 tr.xarma-saved {
-  background-color: #d4f9d4 !important;
+  background-color: #eafbea !important;
   transition: background-color 0.4s ease;
 }
 
@@ -33,20 +160,20 @@ tr.xarma-updating {
   position: fixed;
   bottom: 20px;
   right: 20px;
-  background: #222;
+  background: #333;
   color: #fff;
   padding: 10px 14px;
-  border-radius: 4px;
+  border-radius: 6px;
   z-index: 9999;
   font-size: 14px;
 }
 
-/* Modal content editor */
+/* Modale */
 #xarma-modal {
   display: none;
   position: fixed;
   top: 0; left: 0; right: 0; bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(0,0,0,0.4);
   z-index: 9999;
 }
 
@@ -55,16 +182,20 @@ tr.xarma-updating {
   margin: 10% auto;
   padding: 20px;
   width: 600px;
-  max-width: 90%;
-  border-radius: 6px;
-  box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+  max-width: 95%;
+  border-radius: 8px;
+  box-shadow: 0 0 16px rgba(0,0,0,0.2);
 }
 
 #xarma-modal textarea {
   width: 100%;
-  height: 200px;
-  padding: 10px;
+  height: 220px;
   font-size: 14px;
-  box-sizing: border-box;
+  padding: 10px;
   resize: vertical;
+  box-sizing: border-box;
+  background: #fafafa;
+  color: #333;
+  border: 1px solid #ccc;
+  border-radius: 6px;
 }
